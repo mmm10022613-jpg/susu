@@ -18,7 +18,6 @@
 </head>
 <body class="bg-stone-50 text-stone-800 antialiased overflow-x-hidden">
 
-    <!-- 頂部導航 -->
     <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-40 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
@@ -40,7 +39,6 @@
         </div>
     </nav>
 
-    <!-- 英雄區塊 -->
     <header class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 bg-stone-900 overflow-hidden">
         <div class="absolute inset-0 opacity-40">
             <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" class="w-full h-full object-cover object-center" alt="Kimchi background">
@@ -56,7 +54,6 @@
         </div>
     </header>
 
-    <!-- 產品區塊 -->
     <main id="products" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div class="flex flex-col md:flex-row justify-between items-center mb-12">
             <h2 class="text-3xl font-bold text-gray-900 mb-6 md:mb-0 relative">
@@ -70,11 +67,9 @@
             </div>
         </div>
         <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- JS 生成 -->
-        </div>
+            </div>
     </main>
 
-    <!-- 底部懸浮 -->
     <div class="fixed bottom-0 left-0 w-full bg-white border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-30 px-4 py-3">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3 text-xs text-stone-500 flex-wrap justify-center md:order-1">
@@ -101,7 +96,6 @@
         </div>
     </div>
 
-    <!-- 購物車側邊欄 -->
     <div id="cart-drawer-overlay" class="cart-overlay fixed inset-0 bg-black/50 z-50 hidden opacity-0" onclick="toggleCart()"></div>
     <div id="cart-drawer" class="cart-panel fixed top-0 right-0 h-full w-full sm:w-[480px] bg-white shadow-2xl z-50 transform translate-x-full flex flex-col">
         <div class="p-5 border-b border-stone-100 flex justify-between items-center bg-white">
@@ -174,7 +168,6 @@
         </div>
     </div>
 
-    <!-- 訊息提示 -->
     <div id="message-box" class="fixed top-20 right-4 z-[9999] opacity-0 translate-x-10 transition-all duration-300 pointer-events-none">
         <div id="message-content" class="bg-red-500 text-white px-5 py-3 rounded-lg shadow-xl font-medium flex items-center gap-2"></div>
     </div>
@@ -192,7 +185,7 @@
              projectId: "shiefa",
              storageBucket: "shiefa.firebasestorage.app",
              messagingSenderId: "10912264568",
-             appId: "1:10912264568:web:0bf675bd228faeb6ab188d",
+             appId: "1:10912264568:web:0bf6755bd228faeb6ab188d",
              measurementId: "G-XFVTQC6DSP"
         };
 
@@ -239,38 +232,6 @@
                 box.classList.add('opacity-0', 'translate-x-10', 'pointer-events-none');
             }, 5000);
         }
-
-
-
-// 請將此函式定義加入到您的 <script type="module"> 內
-function toggleCart() {
-    const drawer = document.getElementById('cart-drawer');
-    const overlay = document.getElementById('cart-drawer-overlay');
-    const isVisible = drawer.classList.contains('translate-x-0');
-
-    if (isVisible) {
-        // 關閉側邊欄 (從右邊滑出)
-        drawer.classList.remove('translate-x-0');
-        drawer.classList.add('translate-x-full');
-        overlay.classList.remove('opacity-100');
-        overlay.classList.add('opacity-0');
-        // 等待動畫結束後再隱藏 overlay
-        setTimeout(() => overlay.classList.add('hidden'), 300); 
-    } else {
-        // 開啟側邊欄 (從右邊滑入)
-        overlay.classList.remove('hidden');
-        // 加入微小延遲讓 opacity 過渡動畫生效
-        setTimeout(() => overlay.classList.add('opacity-100'), 10); 
-        drawer.classList.remove('translate-x-full');
-        drawer.classList.add('translate-x-0');
-        
-        // 如果側邊欄開啟時停在「統計」頁籤，就重新渲染統計數據
-        if (document.getElementById('tab-content-stats').classList.contains('active')) {
-            renderStatistics();
-        }
-    }
-}
-// -------------------------------------------------------------------
 
         function getProduct(productId) { return PRODUCTS.find(p => p.id === productId); }
         function updateProductCardQty(productId, qty) {
@@ -405,45 +366,44 @@ function toggleCart() {
         }
 
         // 渲染
-        // 約 388 行：renderProductCards 函式
-function renderProductCards(products) {
-    const container = document.getElementById('product-grid');
-    container.innerHTML = products.map(p => {
-        const currentQty = userCart[p.id] ? userCart[p.id].quantity : 0;
-        const isLocked = !isOrderOpen;
-        const buttonClass = isLocked ? 'locked-button' : 'bg-red-600 hover:bg-red-700 active:bg-red-800 shadow-red-600/30';
-        const buttonText = isLocked ? '訂購已截止' : '加入清單';
-        return `
-            <div class="product-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden border border-stone-200 flex flex-col">
-                <div class="product-img-container relative h-48 overflow-hidden">
-                    <img src="${p.img}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x300/e7e5e4/444444?text=${p.name.substring(0,2)}'" alt="${p.name}">
-                    <span class="absolute top-3 right-3 px-3 py-1 bg-yellow-400 text-stone-900 text-sm font-bold rounded-full shadow-md">${p.category === 'spicy' ? '香辣' : '清爽'}</span>
-                </div>
-                <div class="p-6 flex flex-col flex-grow">
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">${p.name}</h3>
-                    <div class="flex items-end justify-between mb-4 mt-auto">
-                        <span class="text-3xl font-extrabold text-red-600">NT$ ${p.price}</span>
-                        <span class="text-sm text-stone-500">/ 罐 (600g)</span>
-                    </div>
-                    <div class="flex items-center justify-between gap-4">
-                        <div class="flex items-stretch bg-stone-100 rounded-xl overflow-hidden shadow-inner w-2/5">
-                            <button onclick="changeQty('${p.id}', -1)" class="w-10 h-10 flex items-center justify-center text-xl font-bold text-stone-600 hover:bg-stone-200 transition-colors rounded-l-xl" ${isLocked ? 'disabled' : ''}>
-                                ${currentQty > 0 ? '<i data-lucide="minus" class="w-4 h-4"></i>' : '<i data-lucide="trash-2" class="w-4 h-4"></i>'}
-                            </button>
-                            <span id="qty-${p.id}" class="flex-grow flex items-center justify-center text-lg font-bold text-stone-800"> ${currentQty}</span>
-                            <button onclick="changeQty('${p.id}', 1)" class="w-10 h-10 flex items-center justify-center text-xl font-bold text-stone-600 hover:bg-stone-200 transition-colors rounded-r-xl" ${isLocked ? 'disabled' : ''}>
-                                <i data-lucide="plus" class="w-4 h-4"></i>
-                            </button>
+        function renderProductCards(products) {
+            const container = document.getElementById('product-grid');
+            container.innerHTML = products.map(p => {
+                const currentQty = userCart[p.id] ? userCart[p.id].quantity : 0;
+                const isLocked = !isOrderOpen;
+                const buttonClass = isLocked ? 'locked-button' : 'bg-red-600 hover:bg-red-700 active:bg-red-800 shadow-red-600/30';
+                const buttonText = isLocked ? '訂購已截止' : '加入清單';
+                return `
+                    <div class="product-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden border border-stone-200 flex flex-col">
+                        <div class="product-img-container relative h-48 overflow-hidden">
+                            <img src="${p.img}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/400x300/e7e5e4/444444?text=${p.name.substring(0,2)}'" alt="${p.name}">
+                            <span class="absolute top-3 right-3 px-3 py-1 bg-yellow-400 text-stone-900 text-sm font-bold rounded-full shadow-md">${p.category === 'spicy' ? '香辣' : '清爽'}</span>
                         </div>
-                        <button id="add-btn-${p.id}" onclick="saveOrder('${p.id}', document.getElementById('qty-${p.id}').textContent * 1)" class="flex-grow px-4 py-2 text-white font-bold rounded-xl text-lg shadow-md transition-all transform hover:-translate-y-0.5 ${buttonClass}" ${isLocked ? 'disabled' : ''}>
-                            ${buttonText}
-                        </button>
-                    </div>
-                </div>
-            </div>`;
-    }).join('');
-    lucide.createIcons();
-}
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">${p.name}</h3>
+                            <div class="flex items-end justify-between mb-4 mt-auto">
+                                <span class="text-3xl font-extrabold text-red-600">NT$ ${p.price}</span>
+                                <span class="text-sm text-stone-500">/ 罐 (600g)</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-4">
+                                <div class="flex items-stretch bg-stone-100 rounded-xl overflow-hidden shadow-inner w-2/5">
+                                    <button onclick="changeQty('${p.id}', -1)" class="w-10 h-10 flex items-center justify-center text-xl font-bold text-stone-600 hover:bg-stone-200 transition-colors rounded-l-xl" ${isLocked ? 'disabled' : ''}>
+                                        ${currentQty > 0 ? '<i data-lucide="minus" class="w-4 h-4"></i>' : '<i data-lucide="trash-2" class="w-4 h-4"></i>'}
+                                    </button>
+                                    <span id="qty-${p.id}" class="flex-grow flex items-center justify-center text-lg font-bold text-stone-800">${currentQty}</span>
+                                    <button onclick="changeQty('${p.id}', 1)" class="w-10 h-10 flex items-center justify-center text-xl font-bold text-stone-600 hover:bg-stone-200 transition-colors rounded-r-xl" ${isLocked ? 'disabled' : ''}>
+                                        <i data-lucide="plus" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                                <button id="add-btn-${p.id}" onclick="saveOrder('${p.id}', document.getElementById('qty-${p.id}').textContent * 1)" class="flex-grow px-4 py-2 text-white font-bold rounded-xl text-lg shadow-md transition-all transform hover:-translate-y-0.5 ${buttonClass}" ${isLocked ? 'disabled' : ''}>
+                                    ${buttonText}
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+            lucide.createIcons();
+        }
 
         function changeQty(productId, delta) {
             if (!isOrderOpen) {
@@ -487,7 +447,7 @@ function renderProductCards(products) {
                     <div class="bg-stone-50 p-4 rounded-xl shadow-inner border border-stone-200">
                         <div class="flex justify-between items-center pb-2 border-b border-stone-200 mb-2">
                             <span class="font-bold text-red-600 text-lg flex items-center gap-2">
-                                <i data-lucide="shopping-bag" class="w-5 h-5"></i>$$ {buyer} 的訂單 ( $${data.items.length} 項)
+                                <i data-lucide="shopping-bag" class="w-5 h-5"></i>${buyer} 的訂單 (${data.items.length} 項)
                             </span>
                             <span class="font-bold text-lg text-stone-800">NT$ ${data.total.toLocaleString()}</span>
                         </div>
@@ -566,7 +526,7 @@ function renderProductCards(products) {
             if (isOrganizer) {
                 userListHtml = Object.values(userStats).sort((a, b) => b.totalAmount - a.totalAmount).map(u => `
                     <div class="flex justify-between items-center py-2 border-b border-stone-100">
-                        <span class="font-bold text-stone-800">$$ {u.buyerName} ( $${u.totalQty} 罐)</span>
+                        <span class="font-bold text-stone-800">${u.buyerName} (${u.totalQty} 罐)</span>
                         <span class="font-extrabold text-lg text-red-600">NT$ ${u.totalAmount.toLocaleString()}</span>
                     </div>
                 `).join('');
@@ -608,12 +568,13 @@ function renderProductCards(products) {
         }
 
         function checkOrganizerKey() {
-            const correctKey = "susu1104";
+            const correctKey = "kaiseki2024";
             if (isOrganizer) {
                 isOrganizer = false;
                 localStorage.setItem('isOrganizer', 'false');
                 showMessage("已切換回團員模式。");
             } else {
+                // 修正錯誤：將 1104 替換為 prompt
                 const key = prompt("請輸入團主密碼以啟用團購總表功能：");
                 if (key === correctKey) {
                     isOrganizer = true;
@@ -737,18 +698,6 @@ function renderProductCards(products) {
             initFirebase();
             renderProductCards(PRODUCTS);
             updateOrganizerUI();
-
-
-// 【修正點】: 新增頂部購物車按鈕的點擊監聽器
-  
-    document.getElementById('cart-toggle').addEventListener('click', toggleCart); 
-
-    document.getElementById('current-buyer-input').addEventListener('change', (e) => {
-// ... (其他名稱同步邏輯)
-    });
-
-
-
             document.getElementById('current-buyer-input').addEventListener('change', (e) => {
                 const buyerName = e.target.value.trim();
                 localStorage.setItem('buyerName', buyerName);
@@ -763,6 +712,8 @@ function renderProductCards(products) {
             });
             const savedName = localStorage.getItem('buyerName');
             if (savedName) document.getElementById('current-buyer-input').value = savedName;
+            
+            // 確保所有函式都能被 HTML 中的 onclick 呼叫 (您原本的程式碼已包含這部分)
             window.toggleCart = toggleCart;
             window.switchTab = switchTab;
             window.filterProducts = filterProducts;
