@@ -240,6 +240,38 @@
             }, 5000);
         }
 
+
+
+// 請將此函式定義加入到您的 <script type="module"> 內
+function toggleCart() {
+    const drawer = document.getElementById('cart-drawer');
+    const overlay = document.getElementById('cart-drawer-overlay');
+    const isVisible = drawer.classList.contains('translate-x-0');
+
+    if (isVisible) {
+        // 關閉側邊欄 (從右邊滑出)
+        drawer.classList.remove('translate-x-0');
+        drawer.classList.add('translate-x-full');
+        overlay.classList.remove('opacity-100');
+        overlay.classList.add('opacity-0');
+        // 等待動畫結束後再隱藏 overlay
+        setTimeout(() => overlay.classList.add('hidden'), 300); 
+    } else {
+        // 開啟側邊欄 (從右邊滑入)
+        overlay.classList.remove('hidden');
+        // 加入微小延遲讓 opacity 過渡動畫生效
+        setTimeout(() => overlay.classList.add('opacity-100'), 10); 
+        drawer.classList.remove('translate-x-full');
+        drawer.classList.add('translate-x-0');
+        
+        // 如果側邊欄開啟時停在「統計」頁籤，就重新渲染統計數據
+        if (document.getElementById('tab-content-stats').classList.contains('active')) {
+            renderStatistics();
+        }
+    }
+}
+// -------------------------------------------------------------------
+
         function getProduct(productId) { return PRODUCTS.find(p => p.id === productId); }
         function updateProductCardQty(productId, qty) {
             const qtyElement = document.getElementById(`qty-${productId}`);
@@ -705,6 +737,18 @@ function renderProductCards(products) {
             initFirebase();
             renderProductCards(PRODUCTS);
             updateOrganizerUI();
+
+
+// 【修正點】: 新增頂部購物車按鈕的點擊監聽器
+  
+    document.getElementById('cart-toggle').addEventListener('click', toggleCart); 
+
+    document.getElementById('current-buyer-input').addEventListener('change', (e) => {
+// ... (其他名稱同步邏輯)
+    });
+
+
+
             document.getElementById('current-buyer-input').addEventListener('change', (e) => {
                 const buyerName = e.target.value.trim();
                 localStorage.setItem('buyerName', buyerName);
