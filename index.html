@@ -3,96 +3,1163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登入頁面</title>
-    <!-- 載入 Tailwind CSS -->
+    <title>協發行泡菜 | 團購統計版</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* 使用 Inter 字體 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* 淺灰色背景 */
+            font-family: 'Noto Sans TC', sans-serif;
+            padding-bottom: 80px; /* 為了底部的訂購人浮動列預留空間 */
+        }
+
+        /* 自定義捲軸 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* 購物車動畫 */
+        .cart-panel {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .cart-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        /* 產品圖片懸停效果 */
+        .product-img-container img {
+            transition: transform 0.5s ease;
+        }
+        .product-card:hover .product-img-container img {
+            transform: scale(1.05);
+        }
+
+        /* Tab 切換動畫 */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 團主模式開關樣式 */
+        #leader-mode-toggle:checked + .relative {
+            background-color: #ef4444; /* red-500 */
+        }
+        #leader-mode-toggle:checked + .relative #leader-toggle-slider {
+            transform: translateX(1rem); /* 2.5rem - 1rem = 1.5rem */
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-    <div class="w-full max-w-md bg-white p-8 md:p-10 rounded-xl shadow-2xl transition duration-500 ease-in-out transform hover:shadow-3xl">
+<body class="bg-stone-50 text-stone-800 antialiased overflow-x-hidden">
 
-        <h2 class="text-3xl font-extrabold text-gray-900 text-center mb-6">
-            歡迎登入
-        </h2>
-        <p class="text-center text-sm text-gray-600 mb-8">
-            請輸入您的帳號密碼以繼續
-        </p>
-
-        <form class="space-y-6">
-            <!-- 帳號輸入框 -->
-            <div>
-                <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
-                    帳號 (Email 或手機)
-                </label>
-                <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    autocomplete="username"
-                    required
-                    placeholder="請輸入您的帳號"
-                    class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
-                >
-            </div>
-
-            <!-- 密碼輸入框 - 提示文字已修改為「密碼」 -->
-            <div>
-                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-                    密碼
-                </label>
-                <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autocomplete="current-password"
-                    required
-                    placeholder="請輸入您的密碼" <!-- 這裡不再是「預設密碼」 -->
-                    class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
-                >
-            </div>
-
-            <!-- 記住我與忘記密碼選項 -->
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                    <label for="remember-me" class="ml-2 block text-sm text-gray-900">
-                        記住我
-                    </label>
+    <!-- 頂部導航 -->
+    <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-40 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <div class="bg-red-700 text-white p-2 rounded-lg">
+                        <span class="font-bold text-xl tracking-widest">協</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xl font-bold text-gray-900 tracking-wide">協發行泡菜</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-yellow-600 font-medium tracking-wider">團購統計小幫手</span>
+                            <span class="px-1.5 py-0.5 rounded text-[10px] bg-red-100 text-red-600 font-bold">V2.2</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="text-sm">
-                    <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500 transition duration-150 ease-in-out">
-                        忘記密碼？
-                    </a>
+                <!-- 右側按鈕 -->
+                <div class="flex items-center gap-4">
+                    <button id="cart-toggle" class="relative group p-2 hover:bg-stone-100 rounded-full transition-colors">
+                        <i data-lucide="clipboard-list" class="w-6 h-6 text-stone-600 group-hover:text-red-700 transition-colors"></i>
+                        <span id="cart-badge" class="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600 rounded-full transform scale-0 transition-transform duration-200">0</span>
+                    </button>
                 </div>
             </div>
+        </div>
+    </nav>
 
-            <!-- 登入按鈕 -->
-            <div>
-                <button
-                    type="submit"
-                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out transform hover:scale-105"
-                >
-                    登入
+    <!-- 英雄區塊 (Hero) -->
+    <header class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 bg-stone-900 overflow-hidden">
+        <div class="absolute inset-0 opacity-40">
+            <!-- 背景圖 -->
+            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" class="w-full h-full object-cover object-center" alt="[Image of Kimchi and food]">
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/60 to-transparent"></div>
+        
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <span class="inline-block py-1 px-3 rounded-full bg-yellow-500/20 text-yellow-400 text-sm font-semibold mb-6 border border-yellow-500/30 backdrop-blur-sm">
+                辦公室團購 No.1 首選
+            </span>
+            <h1 class="text-4xl sm:text-6xl font-bold text-white mb-6 leading-tight tracking-tight">
+                一口入魂，<span class="text-yellow-400">黃金比例</span>
+            </h1>
+            <p class="text-lg sm:text-xl text-stone-300 mb-10 max-w-2xl mx-auto leading-relaxed">
+                統計訂單好幫手！<br>
+                選好數量再加入購物車，輕鬆完成團購分帳。
+            </p>
+            <div class="flex justify-center gap-4">
+                <button onclick="scrollToProducts()" class="px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-stone-900 font-bold rounded-xl shadow-lg shadow-yellow-500/20 transition-all transform hover:-translate-y-1">
+                    開始團購
                 </button>
             </div>
-        </form>
+        </div>
+    </header>
 
-        <!-- 註冊連結 -->
-        <div class="mt-8 text-center">
-            <p class="text-sm text-gray-600">
-                還沒有帳號？
-                <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500 transition duration-150 ease-in-out">
-                    立即註冊
-                </a>
-            </p>
+    <!-- 產品區塊 -->
+    <main id="products" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        
+        <!-- 分類標籤 -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 md:mb-0 relative">
+                團購全品項一覽 (36項)
+                <span class="absolute -bottom-2 left-0 w-1/2 h-1 bg-yellow-400 rounded-full"></span>
+            </h2>
+            
+            <!-- 新增組合優惠和周邊商品的篩選按鈕 -->
+            <div class="flex space-x-2 bg-white p-1 rounded-lg shadow-sm border border-stone-200 overflow-x-auto pb-1">
+                <button class="filter-btn active px-4 py-2 rounded-md text-sm font-medium bg-stone-800 text-white transition-all whitespace-nowrap" onclick="filterProducts('all', this)">全部 (36)</button>
+                <button class="filter-btn px-4 py-2 rounded-md text-sm font-medium text-stone-500 hover:bg-stone-100 transition-all whitespace-nowrap" onclick="filterProducts('spicy', this)">香辣系列</button>
+                <button class="filter-btn px-4 py-2 rounded-md text-sm font-medium text-stone-500 hover:bg-stone-100 transition-all whitespace-nowrap" onclick="filterProducts('non-spicy', this)">清爽不辣</button>
+                <button class="filter-btn px-4 py-2 rounded-md text-sm font-medium text-stone-500 hover:bg-stone-100 transition-all whitespace-nowrap" onclick="filterProducts('meat', this)">肉品系列</button>
+                <button class="filter-btn px-4 py-2 rounded-md text-sm font-medium text-stone-500 hover:bg-stone-100 transition-all whitespace-nowrap" onclick="filterProducts('bundle', this)">組合優惠</button>
+                <button class="filter-btn px-4 py-2 rounded-md text-sm font-medium text-stone-500 hover:bg-stone-100 transition-all whitespace-nowrap" onclick="filterProducts('accessory', this)">周邊商品</button>
+            </div>
+        </div>
+
+        <!-- 產品列表網格 -->
+        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- JS 生成 -->
+        </div>
+    </main>
+
+    <!-- 底部懸浮：目前訂購人設定 -->
+    <div class="fixed bottom-0 left-0 w-full bg-white border-t border-stone-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-30 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            
+            <!-- 團主模式開關 -->
+            <div class="flex items-center gap-2 bg-stone-100 p-2 rounded-xl border border-stone-200 transition-all duration-200">
+                <i data-lucide="shield-check" class="w-5 h-5 text-red-600"></i>
+                <label for="leader-mode-toggle" class="text-sm font-bold text-stone-700 whitespace-nowrap">團主模式</label>
+                <input type="checkbox" id="leader-mode-toggle" class="sr-only" onchange="toggleLeaderMode(this.checked)">
+                <div class="relative w-10 h-6 bg-stone-300 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-red-300 transition-colors duration-200 cursor-pointer" onclick="document.getElementById('leader-mode-toggle').click()">
+                    <div id="leader-toggle-slider" class="absolute left-[2px] top-[2px] w-5 h-5 bg-white rounded-full transition-transform duration-200 shadow-sm"></div>
+                </div>
+            </div>
+            
+            <!-- 訂購人輸入框 -->
+            <div class="flex items-center gap-3 flex-1 sm:flex-none justify-center">
+                <div class="flex items-center gap-2 text-stone-600 whitespace-nowrap">
+                    <i data-lucide="user-pen" class="w-5 h-5 text-red-600"></i>
+                    <span class="font-bold hidden sm:inline">目前訂購人:</span>
+                </div>
+                <!-- 允許使用者修改名稱並儲存到 localStorage -->
+                <input type="text" id="current-buyer-input" value="我自己" 
+                    class="bg-stone-100 border-2 border-transparent focus:border-yellow-500 focus:bg-white rounded-lg px-4 py-2 w-32 sm:w-48 text-center font-bold text-stone-800 outline-none transition-all"
+                    onfocus="this.select()"
+                    onchange="saveBuyerName(this.value)">
+            </div>
+            
+            <!-- 行動版購物車按鈕 -->
+            <button onclick="document.getElementById('cart-toggle').click()" class="sm:hidden relative p-2 bg-stone-100 rounded-full text-stone-600">
+                <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+                <span id="mobile-badge" class="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full text-[10px] text-white flex items-center justify-center hidden">0</span>
+            </button>
         </div>
     </div>
+
+    <!-- 購物車/團購統計 側邊欄 -->
+    <div id="cart-drawer-overlay" class="cart-overlay fixed inset-0 bg-black/50 z-50 hidden opacity-0" onclick="toggleCart()"></div>
+    <div id="cart-drawer" class="cart-panel fixed top-0 right-0 h-full w-full sm:w-[480px] bg-white shadow-2xl z-50 transform translate-x-full flex flex-col">
+        
+        <!-- 標頭 -->
+        <div class="p-5 border-b border-stone-100 flex justify-between items-center bg-white">
+            <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <i data-lucide="clipboard-check" class="w-5 h-5 text-red-600"></i>
+                團購統計表
+            </h2>
+            <button onclick="toggleCart()" class="p-2 hover:bg-stone-100 rounded-full transition-colors text-stone-500">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Tab 按鈕 -->
+        <div class="flex border-b border-stone-200">
+            <button onclick="switchTab('list')" id="tab-btn-list" class="flex-1 py-3 text-sm font-bold text-red-600 border-b-2 border-red-600 bg-red-50 transition-all">
+                訂購明細
+            </button>
+            <button onclick="switchTab('stats')" id="tab-btn-stats" class="flex-1 py-3 text-sm font-bold text-stone-500 hover:text-stone-800 transition-all">
+                統計/分帳
+            </button>
+        </div>
+
+        <!-- 內容區域 -->
+        <div class="flex-1 overflow-hidden relative">
+            
+            <!-- Tab 1: 訂購明細 (可操作) -->
+            <div id="tab-content-list" class="tab-content active h-full overflow-y-auto p-5 space-y-4">
+                <!-- 團員模式下的提示 -->
+                <div id="member-mode-cart-alert" class="hidden bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-3 rounded-lg" role="alert">
+                    <p class="text-sm font-medium">💡 團員模式：此處只顯示您自己 (<span id="current-buyer-name-display"></span>) 的訂單。</p>
+                </div>
+                <div id="cart-items-container" class="space-y-4">
+                    <!-- JS 生成 -->
+                </div>
+            </div>
+
+            <!-- Tab 2: 統計報表 (唯讀) -->
+            <div id="tab-content-stats" class="tab-content h-full overflow-y-auto p-5 bg-stone-50">
+                
+                <!-- 總量統計 (給店家) -->
+                <div class="bg-white p-4 rounded-xl shadow-sm mb-6">
+                    <h3 class="font-bold text-lg text-stone-800 mb-3 flex items-center gap-2">
+                        <i data-lucide="package" class="w-5 h-5 text-yellow-500"></i>
+                        訂貨總量統計 (全團)
+                    </h3>
+                    <div id="stats-product-list" class="space-y-2 text-sm">
+                        <!-- JS 生成 -->
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-stone-100 flex justify-between items-center">
+                        <span class="font-bold text-stone-600">總罐數/組數</span>
+                        <span class="font-bold text-xl text-red-600" id="stats-total-qty">0</span>
+                    </div>
+                </div>
+
+                <!-- 分帳統計 (收錢用) -->
+                <div id="stats-user-section" class="bg-white p-4 rounded-xl shadow-sm">
+                    <h3 class="font-bold text-lg text-stone-800 mb-3 flex items-center gap-2">
+                        <i data-lucide="coins" class="w-5 h-5 text-yellow-500"></i>
+                        人員分帳表
+                    </h3>
+                    <div id="member-mode-stats-alert" class="hidden bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 p-3 rounded-lg mb-4" role="alert">
+                        <p class="text-sm font-medium">💡 團員模式：此處只顯示您自己 (<span id="current-buyer-name-stats-display"></span>) 的應付金額。</p>
+                    </div>
+                    <div id="stats-user-list" class="space-y-3">
+                        <!-- JS 生成 -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 底部結算 -->
+        <div id="cart-footer" class="p-6 border-t border-stone-100 bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-stone-600 font-medium">訂單總金額</span>
+                <span class="text-2xl font-bold text-red-600" id="cart-total">NT$ 0</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="clearCart()" class="w-full py-3 bg-stone-200 hover:bg-stone-300 text-stone-600 font-bold rounded-xl transition-all">
+                    清空購物車
+                </button>
+                <button class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition-all active:scale-95" onclick="submitOrder()">
+                    確認送出
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div id="toast" class="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-stone-800 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-3 transition-all duration-300 translate-y-20 opacity-0 z-[60] min-w-[300px] justify-center">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
+        <div class="flex flex-col items-start">
+            <span id="toast-message" class="text-sm font-bold">訊息標題</span>
+            <span id="toast-sub" class="text-xs text-stone-400">訊息副標題</span>
+        </div>
+    </div>
+    
+    <!-- Custom Modal 彈窗 (取代 alert/confirm) -->
+    <div id="custom-modal-container" class="fixed inset-0 bg-black/50 z-[70] hidden items-center justify-center p-4">
+        <div id="custom-modal-content" class="bg-white rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-90 opacity-0">
+            <div class="p-6 max-h-[80vh] overflow-y-auto">
+                <h3 id="modal-title" class="text-xl font-bold text-gray-900 mb-3"></h3>
+                <!-- 原有訊息顯示區 -->
+                <pre id="modal-message" class="text-sm text-stone-700 whitespace-pre-wrap leading-relaxed bg-stone-50 p-3 rounded-lg border border-stone-100 overflow-x-auto"></pre>
+                
+                <!-- 新增：密碼/輸入欄位 -->
+                <div id="modal-input-group" class="mt-4 hidden">
+                    <label for="modal-input" id="modal-input-label" class="block text-sm font-medium text-stone-700 mb-1">密碼:</label>
+                    <input type="password" id="modal-input" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-red-500 focus:border-red-500 transition-all text-lg font-mono outline-none" placeholder="請輸入密碼">
+                </div>
+            </div>
+            <div id="modal-footer" class="flex justify-end gap-3 p-4 border-t border-stone-100">
+                <button id="modal-cancel-btn" class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-800 font-medium rounded-lg transition-colors hidden">取消</button>
+                <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // 產品資料 (已更新為 36 項品項)
+        const products = [
+            // 420g 系列 (單罐，團購價 $300 或 $360)
+            { id: 101, name: "招牌黃金泡菜420g", price: 300, tag: "人氣 No.1", category: "non-spicy", image: "uploaded:image_66ce94.png-1bf48bdb-094e-4fce-90cf-bed572005124", desc: "金黃蒜香，酸甜爽脆的經典口味。" },
+            { id: 102, name: "日式胡麻泡菜420g", price: 300, tag: "濃厚香醇", category: "non-spicy", image: "uploaded:image_66ce5b.png-ffb83256-3d01-426f-86b3-0ee9280fc642", desc: "濃郁日式胡麻醬汁，清爽不膩。" },
+            { id: 103, name: "韓式泡菜420g", price: 300, tag: "辛辣過癮", category: "spicy", image: "uploaded:image_66ce39.png-0d65146b-e2e3-4c09-b946-647ee920fc6c", desc: "正宗韓式辣粉醃製，適合重口味愛好者。" },
+            { id: 104, name: "糖醋泡菜420g", price: 300, tag: "古早味", category: "non-spicy", image: "uploaded:image_667cbe.png-d8261501-cfac-402a-81eb-44ce21d8ac39", desc: "傳統台式風味，酸甜開胃。" },
+            { id: 105, name: "黃金海帶絲420g", price: 300, tag: "海洋清爽", category: "non-spicy", image: "uploaded:image_667cb7.png-2bd0b74f-b311-410e-928c-45edf8ff98a7", desc: "嚴選日本昆布，口感脆滑解膩。" },
+            { id: 106, name: "黃金杏鮑菇420g", price: 300, tag: "Q彈多汁", category: "non-spicy", image: "uploaded:image_667c9d.png-f7c2588a-e7b8-4a20-9a4e-01a5b4dd696e", desc: "大塊杏鮑菇，吸飽黃金醬汁精華。" },
+            { id: 107, name: "泰式酸辣鳳爪420g", price: 360, tag: "微辣開胃", category: "meat", image: "uploaded:image_667c97.png-e76cfc1c-8db0-43be-af46-df2019cba76d", desc: "酸、辣、甜完美平衡的泰式風味鳳爪。" },
+            { id: 108, name: "黃金鴨掌420g", price: 360, tag: "團購熱銷", category: "meat", image: "uploaded:image_667c62.png-d11b20f2-ff50-4aa7-b7ad-80aa7f3205cd", desc: "脆口鴨掌搭配黃金醬汁，口感層次豐富。" },
+            
+            // 420g 新增品項 (單罐，團購價 $360)
+            { id: 109, name: "泡菜黃瓜420g", price: 360, tag: "季節限定", category: "non-spicy", image: "https://placehold.co/400x300/fcd34d/57534e?text=泡菜黃瓜", desc: "新鮮小黃瓜搭配清爽泡菜汁，清脆可口。" },
+            { id: 110, name: "黃金玉米筍420g", price: 360, tag: "蔬食首選", category: "non-spicy", image: "https://placehold.co/400x300/fcd34d/57534e?text=黃金玉米筍", desc: "嚴選鮮嫩玉米筍，香甜多汁，素食可食。" },
+            { id: 111, name: "催淚泡菜420g", price: 360, tag: "特級辣味", category: "spicy", image: "https://placehold.co/400x300/ef4444/ffffff?text=催淚泡菜", desc: "挑戰味蕾的極限辣度，後勁十足。" },
+            { id: 112, name: "蘿大柚420g", price: 360, tag: "獨家風味", category: "non-spicy", image: "https://placehold.co/400x300/a8a29e/ffffff?text=蘿大柚", desc: "白蘿蔔與柚子清香結合，解膩開胃。" },
+            
+            // 650g 系列 (單罐，團購價 $360)
+            { id: 113, name: "招牌黃金泡菜650g", price: 360, tag: "份量升級", category: "non-spicy", image: "uploaded:image_66ce94.png-1bf48bdb-094e-4fce-90cf-bed572005124", desc: "家庭號大容量，經典黃金蒜香。" },
+            { id: 114, name: "日式胡麻泡菜650g", price: 360, tag: "份量升級", category: "non-spicy", image: "uploaded:image_66ce5b.png-ffb83256-3d01-426f-86b3-0ee9280fc642", desc: "家庭號大容量，濃郁日式胡麻風味。" },
+            { id: 115, name: "韓式泡菜650g", price: 360, tag: "份量升級", category: "spicy", image: "uploaded:image_66ce39.png-0d65146b-e2e3-4c09-b946-647ee920fc6c", desc: "家庭號大容量，正宗韓式辣味。" },
+            { id: 116, name: "糖醋泡菜650g", price: 360, tag: "份量升級", category: "non-spicy", image: "uploaded:image_667cbe.png-d8261501-cfac-402a-81eb-44ce21d8ac39", desc: "家庭號大容量，傳統台式酸甜。" },
+            { id: 117, name: "黃金海帶絲650g", price: 360, tag: "份量升級", category: "non-spicy", image: "uploaded:image_667cb7.png-2bd0b74f-b311-410e-928c-45edf8ff98a7", desc: "家庭號大容量，滑脆解膩海帶絲。" },
+            { id: 118, name: "黃金杏鮑菇650g", price: 360, tag: "份量升級", category: "non-spicy", image: "uploaded:image_667c9d.png-f7c2588a-e7b8-4a20-9a4e-01a5b4dd696e", desc: "家庭號大容量，Q彈多汁杏鮑菇。" },
+
+            // 醬料/肉品 (單罐，團購價 $450 或 $480)
+            { id: 119, name: "催淚皮蛋辣椒350g", price: 450, tag: "拌飯神醬", category: "spicy", image: "https://placehold.co/400x300/ef4444/ffffff?text=皮蛋辣椒", desc: "香辣下飯的獨特辣椒醬，內含皮蛋，辣度爆表。" },
+            { id: 120, name: "催淚蒜香皮蛋350g", price: 450, tag: "蒜味昇華", category: "spicy", image: "https://placehold.co/400x300/ef4444/ffffff?text=蒜香皮蛋", desc: "濃郁蒜香搭配皮蛋，層次豐富的辣醬，香氣迷人。" },
+            { id: 121, name: "偷心海蜇420g", price: 450, tag: "頂級涼拌", category: "meat", image: "https://placehold.co/400x300/fbbf24/57534e?text=偷心海蜇", desc: "爽脆海蜇絲，佐以秘製醬汁，口感絕佳。" },
+            { id: 122, name: "開燻蒜苗鴨(300g)", price: 480, tag: "宴客菜", category: "meat", image: "https://placehold.co/400x300/fbbf24/57534e?text=蒜苗鴨", desc: "煙燻鴨肉搭配蒜苗，風味獨特，即食美味。" },
+
+            // 周邊商品
+            { id: 123, name: "協發行泡菜禮盒", price: 99, tag: "送禮首選", category: "accessory", image: "https://placehold.co/400x300/d4d4d8/57534e?text=泡菜禮盒", desc: "精美包裝禮盒，送禮大方體面，不含泡菜。" },
+            { id: 124, name: "蠟筆小新聯名保冷袋[摩卡棕]", price: 599, tag: "限量聯名", category: "accessory", image: "https://placehold.co/400x300/e9d5ff/57534e?text=聯名保冷袋", desc: "可愛小新圖案，摩卡棕，保冷效果佳。" },
+            { id: 125, name: "蠟筆小新聯名保冷袋[軍綠]", price: 599, tag: "限量聯名", category: "accessory", image: "https://placehold.co/400x300/e9d5ff/57534e?text=聯名保冷袋", desc: "可愛小新圖案，軍綠色，保冷效果佳。" },
+
+            // 組合優惠 (Bundle)
+            { id: 126, name: "【11樂翻天】黃金泡菜650g*3", price: 900, tag: "超值組合", category: "bundle", image: "https://placehold.co/400x300/10b981/ffffff?text=黃金泡菜組合", desc: "招牌黃金泡菜 650g x 3罐，團購主推，原價 $1260。" },
+            { id: 127, name: "【11樂翻天】韓式泡菜650g*3", price: 900, tag: "超值組合", category: "bundle", image: "https://placehold.co/400x300/10b981/ffffff?text=韓式泡菜組合", desc: "韓式泡菜 650g x 3罐，超值優惠，原價 $1260。" },
+            { id: 128, name: "【11樂翻天】黃金海帶絲650g*3", price: 900, tag: "超值組合", category: "bundle", image: "https://placehold.co/400x300/10b981/ffffff?text=海帶絲組合", desc: "黃金海帶絲 650g x 3罐，清爽不辣組合，原價 $1260。" },
+            { id: 129, name: "【11樂翻天】黃金杏鮑菇650g*3", price: 900, tag: "超值組合", category: "bundle", image: "https://placehold.co/400x300/10b981/ffffff?text=杏鮑菇組合", desc: "黃金杏鮑菇 650g x 3罐，Q彈美味組合，原價 $1260。" },
+            { id: 130, name: "【11樂翻天】胡麻泡菜650g*3", price: 900, tag: "超值組合", category: "bundle", image: "https://placehold.co/400x300/10b981/ffffff?text=胡麻泡菜組合", desc: "日式胡麻泡菜 650g x 3罐，超值優惠，原價 $1260。" },
+            { id: 131, name: "【11樂翻天】黃金鴨掌420g*3", price: 900, tag: "超值組合", category: "bundle", image: "https://placehold.co/400x300/10b981/ffffff?text=黃金鴨掌組合", desc: "黃金鴨掌 420g x 3罐，肉品特惠組合，原價 $1080。" },
+            { id: 132, name: "【11樂翻天】泡菜黃瓜420g*3", price: 900, tag: "超值組合", category: "bundle", image: "https://placehold.co/400x300/10b981/ffffff?text=泡菜黃瓜組合", desc: "泡菜黃瓜 420g x 3罐，清脆爽口組合，原價 $1080。" },
+            { id: 133, name: "【11樂翻天】剝椒催淚泡菜420g*3", price: 900, tag: "超值組合", category: "bundle", image: "https://placehold.co/400x300/10b981/ffffff?text=剝椒催淚組合", desc: "剝椒催淚泡菜 420g x 3罐，麻辣組合，原價 $1080。" },
+            { id: 134, name: "【11樂翻天】偷心海蜇420g*3", price: 1350, tag: "超值組合", category: "bundle", image: "https://placehold.co/400x300/10b981/ffffff?text=偷心海蜇組合", desc: "偷心海蜇 420g x 3罐，豪華海味組合，原價 $1800。" },
+            { id: 135, name: "【11樂翻天】催淚蒜香皮蛋350g*4", price: 1800, tag: "超值組合", category: "bundle", image: "https://placehold.co/400x300/10b981/ffffff?text=蒜香皮蛋組合", desc: "催淚蒜香皮蛋 350g x 4罐，醬料特惠組合，原價 $2200。" },
+            
+            // 已更新品項: 開燻蒜苗鴨(300g)*3 組合 (ID: 136)
+            { id: 136, name: "【超值組合】開燻蒜苗鴨(300g)*3", price: 1440, tag: "肉品組合", category: "bundle", image: "https://placehold.co/400x300/fbbf24/57534e?text=蒜苗鴨+組合", desc: "開燻蒜苗鴨 300g x 3份，份量充足，滿足全家需求，原價 $1440。" }
+        ];
+
+        // 購物車資料結構： { productId, userName, qty, timestamp }
+        let cart = [];
+        
+        // 全域狀態：團主模式
+        let isGroupLeader = false;
+        
+        // 密碼設定
+        const LEADER_PASSWORD = '1104'; 
+
+        // 購物車資料在 localStorage 內的 Key
+        const CART_STORAGE_KEY = 'xie-fa-xing-cart';
+        const BUYER_NAME_KEY = 'xie-fa-xing-buyer-name';
+        const IS_LEADER_KEY = 'xie-fa-xing-is-leader';
+
+        // 載入 localStorage 儲存的資料
+        function loadData() {
+            // 載入購物車
+            const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+            if (savedCart) {
+                try {
+                    const loadedCart = JSON.parse(savedCart);
+                    // 篩選掉舊的或不存在的商品，防止錯誤
+                    cart = loadedCart.filter(item => products.some(p => p.id === item.productId));
+                } catch (e) {
+                    console.error("Failed to parse cart data from localStorage", e);
+                    cart = [];
+                }
+            }
+
+            // 載入訂購人名稱
+            const buyerInput = document.getElementById('current-buyer-input');
+            const savedName = localStorage.getItem(BUYER_NAME_KEY);
+            if (savedName) {
+                buyerInput.value = savedName;
+            } else {
+                saveBuyerName(buyerInput.value); // 儲存預設值
+            }
+            
+            // 載入團主模式狀態
+            const savedLeaderMode = localStorage.getItem(IS_LEADER_KEY);
+            isGroupLeader = savedLeaderMode === 'true';
+            updateLeaderToggleUI();
+        }
+
+        // 儲存購物車到 localStorage
+        function saveCart() {
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+        }
+
+        // 儲存訂購人名稱到 localStorage
+        function saveBuyerName(name) {
+            const trimmedName = name.trim() || "未具名";
+            localStorage.setItem(BUYER_NAME_KEY, trimmedName);
+            // 同步更新 input 框的值，以防使用者輸入空格
+            document.getElementById('current-buyer-input').value = trimmedName;
+            updateCartUI(); // 名稱改變後，更新 UI (團員模式會用到)
+            updateStatsUI();
+        }
+        
+        // 團主模式切換邏輯 (新增密碼驗證)
+        function toggleLeaderMode(isChecked) {
+            const toggleEl = document.getElementById('leader-mode-toggle');
+
+            if (isChecked) {
+                // 嘗試進入團主模式，需要密碼
+                showCustomModal(
+                    "進入團主模式",
+                    "此模式將顯示所有團員訂單明細及分帳資訊。請輸入團主密碼。",
+                    true, // isConfirm: Yes, it's a confirmation/input dialog
+                    (password) => { // onConfirm callback receives the input value
+                        if (password === LEADER_PASSWORD) {
+                            // 密碼正確
+                            isGroupLeader = true;
+                            localStorage.setItem(IS_LEADER_KEY, 'true');
+                            showToast("團主模式已開啟", "可以查看所有訂單");
+                        } else {
+                            // 密碼錯誤或取消，阻止切換，並彈出錯誤提示
+                            toggleEl.checked = false; // Reset the toggle switch in UI
+                            localStorage.setItem(IS_LEADER_KEY, 'false');
+                            // 使用 showCustomModal 顯示錯誤訊息
+                            showCustomModal("密碼錯誤", "您輸入的密碼不正確。無法進入團主模式。", false);
+                        }
+                        updateLeaderToggleUI(); // 總是更新 UI 狀態
+                        updateCartUI();
+                        updateStatsUI();
+                    },
+                    true, // showInput: Show password input
+                    'password', // inputType: Use password field
+                    '密碼 (預設: 1104):' // inputLabel: Label for the input
+                );
+
+            } else {
+                // 退出團主模式，不需要密碼
+                isGroupLeader = false;
+                localStorage.setItem(IS_LEADER_KEY, 'false');
+                updateLeaderToggleUI();
+                updateCartUI();
+                updateStatsUI();
+                showToast("團主模式已關閉", "已切換為團員隱私模式");
+            }
+        }
+
+        // 更新團主模式 UI 顯示 (負責設定勾選狀態和顏色)
+        function updateLeaderToggleUI() {
+            const toggle = document.getElementById('leader-mode-toggle');
+            const slider = document.getElementById('leader-toggle-slider');
+            
+            if (toggle) toggle.checked = isGroupLeader; // 確保 checkbox 狀態與 isGroupLeader 一致
+            
+            if (slider) {
+                if (isGroupLeader) {
+                    slider.parentElement.classList.add('bg-red-500');
+                    slider.parentElement.classList.remove('bg-stone-300');
+                    slider.style.transform = 'translateX(1rem)';
+                } else {
+                    slider.parentElement.classList.remove('bg-red-500');
+                    slider.parentElement.classList.add('bg-stone-300');
+                    slider.style.transform = 'translateX(0)';
+                }
+            }
+        }
+
+        // 顯示自定義模態視窗 (取代 alert/confirm) - 新增 showInput/inputType/inputLabel 參數
+        function showCustomModal(title, message, isConfirm = false, onConfirm = null, showInput = false, inputType = 'text', inputLabel = '輸入內容') {
+            const container = document.getElementById('custom-modal-container');
+            const content = document.getElementById('custom-modal-content');
+            const titleEl = document.getElementById('modal-title');
+            const messageEl = document.getElementById('modal-message');
+            const confirmBtn = document.getElementById('modal-confirm-btn');
+            const cancelBtn = document.getElementById('modal-cancel-btn');
+            const inputGroup = document.getElementById('modal-input-group');
+            const inputEl = document.getElementById('modal-input');
+            const inputLabelEl = document.getElementById('modal-input-label');
+
+            // 設置內容
+            titleEl.innerText = title;
+            messageEl.innerText = message;
+            
+            // 處理輸入欄位
+            if (showInput) {
+                inputGroup.classList.remove('hidden');
+                inputEl.type = inputType;
+                inputLabelEl.innerText = inputLabel;
+                inputEl.value = ''; // 清空上次的值
+                
+                // 處理 Enter 鍵提交
+                inputEl.onkeypress = function(e) {
+                    if (e.key === 'Enter') {
+                        confirmBtn.click();
+                    }
+                };
+                // 讓輸入框自動獲得焦點
+                setTimeout(() => inputEl.focus(), 350);
+            } else {
+                inputGroup.classList.add('hidden');
+                inputEl.onkeypress = null;
+            }
+
+            // 確認/提示模式切換
+            if (isConfirm || showInput) {
+                cancelBtn.classList.remove('hidden');
+                confirmBtn.innerText = showInput ? '確認' : '確認送出';
+                confirmBtn.className = 'px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors';
+            } else {
+                cancelBtn.classList.add('hidden');
+                confirmBtn.innerText = '關閉';
+                confirmBtn.className = 'px-4 py-2 bg-stone-800 hover:bg-stone-900 text-white font-medium rounded-lg transition-colors';
+            }
+
+            // 設置按鈕事件
+            confirmBtn.onclick = () => {
+                const result = showInput ? inputEl.value : null; // 取得輸入值
+                hideCustomModal();
+                if (onConfirm) {
+                    onConfirm(result); // 傳入輸入值
+                }
+            };
+
+            cancelBtn.onclick = () => {
+                 // 如果是密碼輸入模式，取消時也需要處理，並且確保 toggle 狀態被重置
+                if (showInput) {
+                    const toggleEl = document.getElementById('leader-mode-toggle');
+                    if (toggleEl && toggleEl.checked) {
+                        toggleEl.checked = false;
+                        updateLeaderToggleUI();
+                    }
+                }
+                hideCustomModal();
+            };
+
+            // 顯示
+            container.classList.remove('hidden');
+            container.style.display = 'flex';
+            setTimeout(() => {
+                content.classList.remove('scale-90', 'opacity-0');
+            }, 10);
+        }
+        
+        // 隱藏自定義模態視窗
+        function hideCustomModal() {
+            const container = document.getElementById('custom-modal-container');
+            const content = document.getElementById('custom-modal-content');
+            content.classList.add('scale-90', 'opacity-0');
+            setTimeout(() => {
+                container.classList.add('hidden');
+                container.style.display = 'none';
+            }, 300);
+        }
+        
+        // 顯示 Toast 通知 (通用版本)
+        let toastTimeout;
+        function showToast(mainText, subText) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = mainText;
+            document.getElementById('toast-sub').innerText = subText;
+
+            // 清除之前的 timeout，防止重複彈出
+            clearTimeout(toastTimeout);
+            
+            // 顯示 Toast
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            // 設置自動隱藏
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // 加入購物車
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            // 從 input 欄位取得當前訂購人名稱
+            const buyerInput = document.getElementById('current-buyer-input');
+            const buyerName = buyerInput.value.trim() || "未具名"; 
+            
+            // 獲取選擇的數量
+            const qtySelect = document.getElementById(`qty-${productId}`);
+            const selectedQty = parseInt(qtySelect.value);
+
+            // 檢查購物車中是否已經有 "這個人" 買 "這項商品"
+            const existingItem = cart.find(item => item.productId === productId && item.userName === buyerName);
+
+            if (existingItem) {
+                existingItem.qty += selectedQty;
+            } else {
+                cart.push({
+                    productId: product.id,
+                    productName: product.name,
+                    price: product.price,
+                    image: product.image,
+                    userName: buyerName,
+                    qty: selectedQty,
+                    timestamp: Date.now() // 用於排序
+                });
+            }
+            
+            // 重置數量選單回 1
+            qtySelect.value = 1;
+
+            saveCart(); // 儲存變動
+            updateCartUI();
+            updateStatsUI();
+            
+            // 顯示 Toast
+            // 移除名稱中的容量資訊 (420g, 650g, 350g, 300g) 和組裝資訊 (*3, *4)
+            const cleanName = product.name
+                .replace(/(\d+g)|(\(\d+g\))|(\*\d)/g, '')
+                .replace('【11樂翻天】', '')
+                .replace('【超值組合】', '')
+                .trim();
+            showToast(`已加入 ${selectedQty} 份到購物車`, `幫 ${buyerName} 點了 ${cleanName}`);
+            
+            if (navigator.vibrate) navigator.vibrate(50);
+        }
+
+        // 移除/修改數量
+        function changeQty(productId, userName, delta) {
+            const itemIndex = cart.findIndex(item => item.productId === productId && item.userName === userName);
+            if (itemIndex > -1) {
+                // 在團員模式下，只能修改自己的訂單
+                if (!isGroupLeader && cart[itemIndex].userName !== getCurrentBuyerName()) {
+                    showCustomModal("權限不足", "您目前在團員模式，只能編輯自己的訂單。", false);
+                    return;
+                }
+
+                cart[itemIndex].qty += delta;
+                if (cart[itemIndex].qty <= 0) {
+                    cart.splice(itemIndex, 1);
+                }
+                saveCart(); // 儲存變動
+                updateCartUI();
+                updateStatsUI();
+            }
+        }
+
+        function removeItem(productId, userName) {
+             // 在團員模式下，只能刪除自己的訂單
+            if (!isGroupLeader && userName !== getCurrentBuyerName()) {
+                showCustomModal("權限不足", "您目前在團員模式，只能刪除自己的訂單。", false);
+                return;
+            }
+            
+            cart = cart.filter(item => !(item.productId === productId && item.userName === userName));
+            saveCart(); // 儲存變動
+            updateCartUI();
+            updateStatsUI();
+        }
+
+        function clearCart() {
+            // 在團員模式下，只能清空自己的訂單
+            if (!isGroupLeader) {
+                 showCustomModal("權限不足", "您目前在團員模式，只能清空自己的訂單。", false);
+                 return;
+            }
+
+            // 使用自定義 Modal 進行確認
+            showCustomModal("確認清空", "您確定要清空所有已加入購物車的品項嗎？此動作無法復原。", true, () => {
+                cart = [];
+                saveCart(); // 儲存變動
+                updateCartUI();
+                updateStatsUI();
+                showToast("購物車已清空", "所有訂單資料已移除");
+            });
+        }
+        
+        // 取得目前訂購人名稱
+        function getCurrentBuyerName() {
+            const buyerInput = document.getElementById('current-buyer-input');
+            return buyerInput ? buyerInput.value.trim() : "未具名";
+        }
+        
+        // 提交訂單 (產生報表並清空)
+        function submitOrder() {
+            if (cart.length === 0) {
+                showCustomModal("提示", "購物車是空的喔！請先加入商品。", false);
+                return;
+            }
+            
+            // 團員模式下阻止提交總訂單
+            if (!isGroupLeader) {
+                showCustomModal("權限不足", "您目前在團員模式。只有團主才能提交總訂單並清空全部資料。", false);
+                return;
+            }
+            
+            // 統計資料
+            const userStats = {};
+            let grandTotal = 0;
+            
+            // 1. 整理每位訂購人的明細和總金額
+            cart.forEach(item => {
+                if (!userStats[item.userName]) {
+                    userStats[item.userName] = {
+                        items: [],
+                        total: 0
+                    };
+                }
+                
+                // 移除名稱中的容量資訊 (420g, 650g, 350g, 300g) 和組裝資訊 (*3, *4)
+                const displayName = item.productName
+                    .replace(/(\d+g)|(\(\d+g\))|(\*\d)/g, '')
+                    .replace('【11樂翻天】', '')
+                    .replace('【超值組合】', '')
+                    .trim();
+                
+                const itemPrice = item.price;
+                const itemTotal = item.price * item.qty;
+
+                // 報表行：品名 x數量 (單價) = 總價
+                userStats[item.userName].items.push(`- ${displayName} x${item.qty} (NT$ ${itemPrice}) = NT$ ${itemTotal}`);
+                userStats[item.userName].total += itemTotal;
+                grandTotal += itemTotal;
+            });
+
+            // 2. 生成報表文字
+            let report = "【協發行泡菜 - 團購訂單統計】\n";
+            report += `統計時間：${new Date().toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}\n`;
+            report += "---------------------------------\n\n";
+            
+            // 3. 列出每個訂購人的分帳明細
+            for (const user in userStats) {
+                const u = userStats[user];
+                report += `👤 ${user} - 總金額：NT$ ${u.total}\n`;
+                u.items.forEach(line => {
+                    report += `  ${line}\n`;
+                });
+                report += "---------------------------------\n";
+            }
+            
+            report += "\n** 總結 **\n";
+            
+            // 總訂購數 (罐/組)
+            const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+            report += `📦 總訂購數：${totalQty} 份/組\n`; 
+            report += `💰 訂單總金額：NT$ ${grandTotal}\n`;
+            report += "---------------------------------\n";
+            
+            // 彈出確認視窗 (使用自定義 Modal)
+            showCustomModal("確認訂單並送出", report + "\n\n請確認明細無誤後，送出將會自動清空購物車。", true, () => {
+                // Confirmed action:
+                console.log("團購報表已生成 (可從 Console 複製):", report); 
+                
+                // 執行送出與清空動作
+                cart = [];
+                saveCart(); // 儲存變動
+                updateCartUI();
+                updateStatsUI();
+                toggleCart(); // 關閉側邊欄
+                
+                // 顯示成功提示
+                showCustomModal("送出成功！", "✅ 訂單已成功送出並清空購物車。\n\n您可複製上方訂單明細文字，傳到群組或 Line 給團購主喔！", false);
+            });
+        }
+
+        // 輔助函數：捲動到產品區塊
+        function scrollToProducts() {
+            document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+        }
+
+
+        // 更新 UI：訂購明細 Tab
+        function updateCartUI() {
+            const container = document.getElementById('cart-items-container');
+            const totalElement = document.getElementById('cart-total');
+            const badge = document.getElementById('cart-badge');
+            const mobileBadge = document.getElementById('mobile-badge');
+            const currentBuyerName = getCurrentBuyerName();
+            const memberAlert = document.getElementById('member-mode-cart-alert');
+
+            // 根據模式篩選購物車
+            const filteredCart = isGroupLeader 
+                ? cart 
+                : cart.filter(item => item.userName === currentBuyerName);
+
+            // 顯示/隱藏團員模式提示
+            if (!isGroupLeader) {
+                memberAlert.classList.remove('hidden');
+                document.getElementById('current-buyer-name-display').innerText = currentBuyerName;
+            } else {
+                memberAlert.classList.add('hidden');
+            }
+
+            // 計算總量與金額 (Filtered Cart)
+            let totalQty = 0;
+            let totalPrice = 0;
+
+            if (filteredCart.length === 0) {
+                container.innerHTML = `
+                    <div class="h-64 flex flex-col items-center justify-center text-stone-400 space-y-4">
+                        <i data-lucide="shopping-cart" class="w-16 h-16 opacity-20"></i>
+                        <p>${isGroupLeader ? '購物車目前沒有訂單' : `您 (${currentBuyerName}) 目前沒有訂單`}</p>
+                        <p class="text-xs">請在下方輸入名字後開始點餐</p>
+                    </div>`;
+                lucide.createIcons(); // 確保圖示顯示
+            } else {
+                // 按照最近加入排序
+                const sortedCart = [...filteredCart].sort((a, b) => b.timestamp - a.timestamp);
+                
+                let html = '';
+                sortedCart.forEach(item => {
+                    const itemTotal = item.price * item.qty;
+                    totalPrice += itemTotal;
+                    
+                    // 顯示時移除名稱中的容量資訊 (420g, 650g, 350g, 300g) 和組裝資訊 (*3, *4)
+                    const displayName = item.productName
+                        .replace(/(\d+g)|(\(\d+g\))|(\*\d)/g, '')
+                        .replace('【11樂翻天】', '')
+                        .replace('【超值組合】', '')
+                        .trim();
+
+                    html += `
+                        <div class="flex gap-3 p-3 bg-white rounded-xl border border-stone-100 shadow-sm">
+                            <!-- 產品圖片 (小圖) -->
+                            <img src="${item.image}" alt="${item.productName}" class="w-16 h-16 rounded-lg object-cover bg-stone-100">
+                            <div class="flex-1 flex flex-col justify-between">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <!-- 團員模式下不顯示名字的標籤 -->
+                                        ${isGroupLeader ? 
+                                            `<div class="flex items-center gap-2 mb-1">
+                                                <span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">${item.userName}</span>
+                                                <h4 class="font-bold text-gray-900 text-sm line-clamp-1">${displayName}</h4>
+                                            </div>`
+                                            : 
+                                            `<h4 class="font-bold text-gray-900 text-sm line-clamp-1">${displayName}</h4>`
+                                        }
+                                    </div>
+                                    <button onclick="removeItem(${item.productId}, '${item.userName}')" class="text-stone-300 hover:text-red-500 p-1">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                                <div class="flex justify-between items-end">
+                                    <span class="text-sm font-bold text-red-600">NT$ ${itemTotal}</span>
+                                    <div class="flex items-center bg-stone-100 rounded-lg border border-stone-200 h-7 shadow-sm">
+                                        <button onclick="changeQty(${item.productId}, '${item.userName}', -1)" class="px-2 h-full hover:bg-stone-200 text-stone-600 rounded-l-lg text-sm">-</button>
+                                        <span class="px-2 text-xs font-bold min-w-[1.5rem] text-center">${item.qty}</span>
+                                        <button onclick="changeQty(${item.productId}, '${item.userName}', 1)" class="px-2 h-full hover:bg-stone-200 text-stone-600 rounded-r-lg text-sm">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            }
+
+            // 更新總金額與徽章 (徽章和總金額要顯示全團的)
+            const grandTotalPrice = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+            const grandTotalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+
+            totalElement.innerText = `NT$ ${grandTotalPrice}`;
+            badge.innerText = grandTotalQty;
+            badge.classList.toggle('scale-0', grandTotalQty === 0);
+            
+            mobileBadge.innerText = grandTotalQty;
+            mobileBadge.classList.toggle('hidden', grandTotalQty === 0);
+
+            lucide.createIcons();
+        }
+
+        // 更新 UI：統計 Tab
+        function updateStatsUI() {
+            const productList = document.getElementById('stats-product-list');
+            const userList = document.getElementById('stats-user-list');
+            const totalQtyEl = document.getElementById('stats-total-qty');
+            const currentBuyerName = getCurrentBuyerName();
+            const memberStatsAlert = document.getElementById('member-mode-stats-alert');
+
+
+            if (cart.length === 0) {
+                productList.innerHTML = '<p class="text-stone-400 text-center py-4">無資料</p>';
+                userList.innerHTML = '<p class="text-stone-400 text-center py-4">無資料</p>';
+                totalQtyEl.innerText = '0';
+                memberStatsAlert.classList.add('hidden'); // 無資料時隱藏提示
+                return;
+            }
+
+            // 1. 依產品統計 (給店家) - 永遠使用整個 cart
+            const productStats = {};
+            let grandTotalQty = 0;
+            
+            cart.forEach(item => {
+                // 移除名稱中的容量資訊 (420g, 650g, 350g, 300g) 和組裝資訊 (*3, *4)
+                const productName = item.productName
+                    .replace(/(\d+g)|(\(\d+g\))|(\*\d)/g, '')
+                    .replace('【11樂翻天】', '')
+                    .replace('【超值組合】', '')
+                    .trim();
+                const productId = item.productId;
+
+                if (!productStats[productId]) {
+                    productStats[productId] = { name: productName, qty: 0 };
+                }
+                productStats[productId].qty += item.qty;
+                grandTotalQty += item.qty;
+            });
+
+            let productHtml = '';
+            // 依照產品名稱排序
+            const sortedProductStats = Object.values(productStats).sort((a, b) => a.name.localeCompare(b.name, 'zh-TW'));
+
+            sortedProductStats.forEach(p => {
+                productHtml += `
+                    <div class="flex justify-between items-center border-b border-stone-100 last:border-0 py-2">
+                        <span class="text-stone-700">${p.name}</span>
+                        <span class="font-bold bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-md">x ${p.qty}</span>
+                    </div>
+                `;
+            });
+            productList.innerHTML = productHtml;
+            totalQtyEl.innerText = grandTotalQty;
+
+            // 2. 依人員統計 (分帳)
+            const userStats = {};
+            
+            // 篩選 cart: 團主看全部，團員只看自己
+            const statsCart = isGroupLeader 
+                ? cart 
+                : cart.filter(item => item.userName === currentBuyerName);
+                
+            // 顯示/隱藏團員模式提示
+            if (!isGroupLeader) {
+                memberStatsAlert.classList.remove('hidden');
+                document.getElementById('current-buyer-name-stats-display').innerText = currentBuyerName;
+            } else {
+                memberStatsAlert.classList.add('hidden');
+            }
+
+            statsCart.forEach(item => {
+                if (!userStats[item.userName]) {
+                    userStats[item.userName] = { total: 0, items: [] };
+                }
+                
+                const itemTotal = item.price * item.qty;
+                userStats[item.userName].total += itemTotal;
+                
+                // 分帳明細顯示簡潔名稱和金額
+                const displayName = item.productName
+                    .replace(/(\d+g)|(\(\d+g\))|(\*\d)/g, '')
+                    .replace('【11樂翻天】', '')
+                    .replace('【超值組合】', '')
+                    .trim();
+                
+                userStats[item.userName].items.push({
+                    name: displayName,
+                    qty: item.qty,
+                    price: item.price,
+                    total: itemTotal
+                });
+            });
+
+            let userHtml = '';
+            // 依照使用者名稱排序
+            const sortedUserNames = Object.keys(userStats).sort((a, b) => a.localeCompare(b, 'zh-TW'));
+
+            if (sortedUserNames.length === 0 && !isGroupLeader) {
+                 userList.innerHTML = '<p class="text-stone-400 text-center py-4">無您名下的訂單資料</p>';
+            } else if (sortedUserNames.length === 0 && isGroupLeader) {
+                 userList.innerHTML = '<p class="text-stone-400 text-center py-4">無任何訂單資料</p>';
+            } else {
+                sortedUserNames.forEach(user => {
+                    const u = userStats[user];
+                    // 依照價格高低排序明細
+                    const sortedItems = u.items.sort((a, b) => b.total - a.total);
+
+                    userHtml += `
+                        <div class="border border-stone-200 rounded-xl p-4 bg-white shadow-md">
+                            <div class="flex justify-between items-center pb-2 border-b border-stone-100">
+                                <span class="font-bold text-lg text-stone-800 flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>
+                                    ${user}
+                                </span>
+                                <span class="font-bold text-2xl text-red-600">NT$ ${u.total}</span>
+                            </div>
+                            <div class="text-sm text-stone-700 mt-3 space-y-2">
+                                ${sortedItems.map(item => `
+                                    <div class="grid grid-cols-3 gap-2 text-xs sm:text-sm">
+                                        <span class="truncate col-span-1">${item.name}</span>
+                                        <span class="text-center font-medium text-stone-500">x ${item.qty}</span>
+                                        <span class="text-right font-bold text-stone-800">NT$ ${item.total}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                );
+                userList.innerHTML = userHtml;
+            }
+        }
+        
+        // 篩選產品
+        function filterProducts(filter, button) {
+            // 移除所有按鈕的 active 樣式
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-stone-800', 'text-white');
+                btn.classList.add('text-stone-500', 'hover:bg-stone-100');
+            });
+            // 為點擊的按鈕添加 active 樣式
+            button.classList.add('active', 'bg-stone-800', 'text-white');
+            button.classList.remove('text-stone-500', 'hover:bg-stone-100');
+
+            renderProducts(filter);
+        }
+
+        // 渲染產品
+        function renderProducts(filter = 'all') {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
+            
+            // 根據 category 篩選，如果沒有特別分類，預設全部顯示
+            const filteredProducts = filter === 'all' 
+                ? products 
+                : products.filter(p => p.category === filter);
+
+            // 更新篩選器上的總數
+            const allBtn = document.querySelector('.filter-btn[onclick="filterProducts(\'all\', this)"]');
+            if (allBtn) allBtn.innerText = `全部 (${products.length})`;
+            
+            // 更新目前 active 篩選器的文字
+            const activeBtn = document.querySelector('.filter-btn.active');
+            if (activeBtn) activeBtn.innerText = `${activeBtn.innerText.split('(')[0].trim()} (${filteredProducts.length})`;
+
+            // 更新標題上的總數
+            const h2Title = document.querySelector('h2');
+            if (h2Title) h2Title.innerHTML = `團購全品項一覽 (${products.length}項)<span class="absolute -bottom-2 left-0 w-1/2 h-1 bg-yellow-400 rounded-full"></span>`;
+
+
+            filteredProducts.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-stone-100 overflow-hidden flex flex-col group';
+                
+                // 產生 1-10 的選項
+                const options = Array.from({length: 10}, (_, i) => i + 1)
+                    .map(num => `<option value="${num}">${num}</option>`).join('');
+
+                // 移除名稱中的容量資訊 (420g, 650g, 350g, 300g) 和組裝資訊 (*3, *4)
+                const cleanedName = product.name
+                    .replace(/(\d+g)|(\(\d+g\))|(\*\d)/g, '')
+                    .replace('【11樂翻天】', '')
+                    .replace('【超值組合】', '')
+                    .trim();
+
+                card.innerHTML = `
+                    <!-- 圖片容器: 加入 bg-stone-100 作為圖片載入失敗時的背景色 -->
+                    <div class="relative overflow-hidden aspect-[4/3] product-img-container bg-stone-100 flex items-center justify-center">
+                        <!-- 使用產品資料中的圖片路徑 -->
+                        <img src="${product.image}" 
+                             alt="${product.name}" 
+                             class="w-full h-full object-cover"
+                             onerror="this.onerror=null; this.parentElement.classList.remove('bg-stone-100'); this.parentElement.innerHTML='<div class=\\"p-8 text-center text-stone-400 text-sm\\"><i data-lucide=\\"image-off\\" class=\\"w-8 h-8 mx-auto mb-2\\"></i>圖片載入失敗</div>'; lucide.createIcons();">
+                        <div class="absolute top-3 left-3 bg-white/90 backdrop-blur text-xs font-bold px-3 py-1 rounded-full shadow-sm text-gray-800">${product.tag}</div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-1">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-xl font-bold text-gray-900">${cleanedName}</h3>
+                            <span class="text-lg font-bold text-red-600">NT$ ${product.price}</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 flex-1 leading-relaxed">${product.desc}</p>
+                        
+                        <div class="mt-auto">
+                            <div class="flex items-center gap-2 mb-3">
+                                <label for="qty-${product.id}" class="text-sm font-bold text-stone-600">數量:</label>
+                                <select id="qty-${product.id}" class="bg-stone-100 border border-stone-200 text-stone-900 text-sm rounded-lg focus:ring-yellow-500 focus:border-yellow-500 block w-full p-2.5 outline-none font-bold">
+                                    ${options}
+                                </select>
+                            </div>
+                            <!-- 按鈕文字已變更為 '加入購物車' -->
+                            <button onclick="addToCart(${product.id})" class="w-full py-3 bg-stone-800 hover:bg-yellow-500 hover:text-stone-900 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-md">
+                                <i data-lucide="shopping-cart" class="w-4 h-4"></i> 加入購物車
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+        
+        // 購物車側邊欄切換
+        function toggleCart() {
+            const drawer = document.getElementById('cart-drawer');
+            const overlay = document.getElementById('cart-drawer-overlay');
+            const isOpen = !drawer.classList.contains('translate-x-full');
+            
+            // 確保 UI 更新
+            if (!isOpen) { // 準備打開
+                updateCartUI(); // 打開前更新訂購明細
+                updateStatsUI(); // 打開前更新統計報表
+                overlay.classList.remove('hidden', 'opacity-0');
+                drawer.classList.remove('translate-x-full');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            } else { // 準備關閉
+                overlay.classList.add('opacity-0');
+                drawer.classList.add('translate-x-full');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+        
+        // 購物車 Tab 切換
+        function switchTab(tabId) {
+            // 隱藏所有內容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            // 移除所有按鈕的 active 樣式
+            document.querySelectorAll('[id^="tab-btn-"]').forEach(btn => {
+                btn.classList.remove('text-red-600', 'border-red-600', 'bg-red-50', 'border-b-2');
+                btn.classList.add('text-stone-500', 'hover:text-stone-800');
+            });
+
+            // 顯示目標內容
+            document.getElementById(`tab-content-${tabId}`).classList.add('active');
+            
+            // 設置目標按鈕 active 樣式
+            const targetBtn = document.getElementById(`tab-btn-${tabId}`);
+            if (targetBtn) {
+                targetBtn.classList.add('text-red-600', 'border-red-600', 'bg-red-50', 'border-b-2');
+                targetBtn.classList.remove('text-stone-500', 'hover:text-stone-800');
+            }
+
+            // 如果切換到統計，更新統計資料
+            if (tabId === 'stats') {
+                updateStatsUI();
+            } else {
+                updateCartUI();
+            }
+        }
+
+        // 初始化
+        window.onload = function() {
+            loadData();
+            renderProducts();
+            // 初始化時預設是訂購明細 tab
+            updateCartUI(); 
+            updateStatsUI(); 
+        };
+    </script>
 </body>
 </html>
