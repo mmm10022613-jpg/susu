@@ -1,3 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>協發行泡菜 | 團購統計版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            padding-bottom: 80px; /* 為了底部的訂購人浮動列預留空間 */
+        }
+
+        /* 自定義捲軸 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* 購物車動畫 */
+        .cart-panel {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 團購清單卡片樣式調整 (無圖) */
+        .product-card {
+            display: flex; /* 確保主體內容是 Flexbox */
+            flex-direction: column;
+        }
+        
+        /* 側邊欄 Tab 樣式 */
+        .tab-content {
+            display: none;
+            height: 100%;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* 浮動欄位動畫 */
+        .buyer-float {
+            transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+        }
+        .buyer-float:focus-within {
+             /* 當輸入框獲得焦點時，提升陰影 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* 響應式網格調整 (手機版 1 欄，平板 2 欄，桌面 3 欄) */
+        @media (min-width: 640px) {
+             #product-grid {
+                 grid-template-columns: repeat(2, minmax(0, 1fr));
+             }
+        }
+        @media (min-width: 1024px) {
+             #product-grid {
+                 grid-template-columns: repeat(3, minmax(0, 1fr));
+             }
+        }
+    </style>
+</head>
+<body class="bg-stone-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-extrabold text-stone-900 mb-2 tracking-tight">協發行泡菜 | 團購統計版</h1>
+            <p class="text-stone-500 max-w-3xl mx-auto">點選下方的品項加入訂單，團主可開啟團主模式（密碼：1104）查看所有訂單總表與分帳明細。</p>
+        </header>
+        
+        <div class="flex justify-center mb-12">
+            <div class="flex items-center space-x-3 bg-white p-3 rounded-xl shadow-lg border border-stone-100">
+                <span class="text-sm font-medium text-stone-700 flex items-center gap-1.5">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-red-600"></i>
+                    團主模式
+                </span>
+                <label for="leader-mode-toggle" class="inline-flex relative items-center cursor-pointer">
+                    <input type="checkbox" value="" id="leader-mode-toggle" class="sr-only peer" onchange="toggleLeaderMode(this.checked)">
+                    <div id="leader-toggle-slider" class="w-9 h-5 bg-stone-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-stone-300 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500"></div>
+                </label>
+            </div>
+        </div>
+
+        <section id="products" class="mb-12">
+            <h2 class="text-2xl font-bold text-stone-900 mb-6 relative pb-2 inline-block">
+                團購全品項一覽 (<span id="total-product-count">36</span>項)
+                <span class="absolute -bottom-2 left-0 w-1/2 h-1 bg-yellow-400 rounded-full"></span>
+            </h2>
+            
+            <div class="flex flex-wrap gap-2 mb-8 sticky top-0 bg-stone-50 py-4 z-10 -mx-4 px-4 sm:mx-0 sm:px-0">
+                <button onclick="filterProducts('all', this)" class="filter-btn active bg-stone-800 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors whitespace-nowrap shadow-md">
+                    全部 (36)
+                </button>
+                <button onclick="filterProducts('non-spicy', this)" class="filter-btn text-stone-500 hover:bg-stone-100 text-sm font-medium px-4 py-2 rounded-full transition-colors whitespace-nowrap">
+                    清爽不辣
+                </button>
+                <button onclick="filterProducts('spicy', this)" class="filter-btn text-stone-500 hover:bg-stone-100 text-sm font-medium px-4 py-2 rounded-full transition-colors whitespace-nowrap">
+                    香辣系列
+                </button>
+                <button onclick="filterProducts('meat', this)" class="filter-btn text-stone-500 hover:bg-stone-100 text-sm font-medium px-4 py-2 rounded-full transition-colors whitespace-nowrap">
+                    肉品系列
+                </button>
+                <button onclick="filterProducts('bundle', this)" class="filter-btn text-stone-500 hover:bg-stone-100 text-sm font-medium px-4 py-2 rounded-full transition-colors whitespace-nowrap">
+                    組合優惠
+                </button>
+                <button onclick="filterProducts('accessory', this)" class="filter-btn text-stone-500 hover:bg-stone-100 text-sm font-medium px-4 py-2 rounded-full transition-colors whitespace-nowrap">
+                    周邊商品
+                </button>
+            </div>
+
+            <div id="product-grid" class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                </div>
+        </section>
+
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 shadow-2xl z-20">
+        <div class="container mx-auto px-4 py-3 max-w-7xl flex justify-between items-center">
+             <div class="flex items-center gap-3 buyer-float flex-1 mr-4 bg-stone-100 rounded-xl p-2 border border-stone-200 max-w-sm">
+                <label for="current-buyer-input" class="text-sm font-bold text-stone-600 flex-shrink-0">
+                    訂購人:
+                </label>
+                <input type="text" id="current-buyer-input" placeholder="請輸入您的名字" value="我自己"
+                       onchange="saveBuyerName(this.value)" 
+                       class="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-stone-900 text-base font-bold">
+            </div>
+
+            <button onclick="toggleCart()" class="relative bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl transition-colors shadow-lg flex items-center gap-2 flex-shrink-0">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                查看訂單
+                <span id="cart-badge" class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-stone-900 text-xs font-black w-6 h-6 flex items-center justify-center rounded-full transition-transform duration-300">
+                    0
+                </span>
+            </button>
+        </div>
+    </div>
+    
+    <button id="mobile-cart-button" onclick="toggleCart()" class="fixed bottom-20 right-4 bg-red-600 hover:bg-red-700 text-white p-4 rounded-full shadow-xl z-20 md:hidden">
+        <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+        <span id="mobile-badge" class="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-stone-900 text-xs font-black w-5 h-5 flex items-center justify-center rounded-full hidden">0</span>
+     </button>
+
+
+    <div id="cart-drawer-overlay" onclick="toggleCart()" class="fixed inset-0 bg-black/50 z-30 transition-opacity duration-300 hidden opacity-0"></div>
+    <div id="cart-drawer" class="cart-panel fixed right-0 top-0 h-full w-full max-w-md bg-stone-50 shadow-2xl z-40 transform translate-x-full flex flex-col">
+        
+        <div class="p-4 flex justify-between items-center border-b border-stone-200 bg-white sticky top-0 z-10">
+            <h3 class="text-xl font-bold text-stone-800">團購訂單中心</h3>
+            <button onclick="toggleCart()" class="text-stone-400 hover:text-stone-700 p-1">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div class="flex border-b border-stone-200 bg-white sticky top-[65px] z-10">
+            <button id="tab-btn-cart" onclick="switchTab('cart')" class="tab-btn flex-1 py-3 text-red-600 border-red-600 bg-red-50 border-b-2 font-medium transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="list-ordered" class="w-4 h-4"></i>
+                訂購明細
+            </button>
+            <button id="tab-btn-stats" onclick="switchTab('stats')" class="tab-btn flex-1 py-3 text-stone-500 hover:text-stone-800 font-medium transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+                統計/分帳
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+            
+            <div id="tab-content-cart" class="tab-content active space-y-3">
+                <div id="member-mode-cart-alert" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 rounded-md text-sm" role="alert">
+                    您處於團員模式。目前僅顯示 **<span id="current-buyer-name-display" class="font-bold"></span>** 的訂單。
+                </div>
+                
+                <div id="cart-items-container" class="space-y-4">
+                    </div>
+            </div>
+
+            <div id="tab-content-stats" class="tab-content h-full">
+                <div class="space-y-6">
+                    <div id="member-mode-stats-alert" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-3 rounded-md text-sm" role="alert">
+                        您處於團員模式。目前僅顯示 **<span id="current-buyer-name-stats-display" class="font-bold"></span>** 的分帳資訊。
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-4 border border-stone-100">
+                        <h4 class="text-lg font-bold text-stone-800 mb-3 flex items-center gap-2">
+                            <i data-lucide="package" class="w-5 h-5 text-red-600"></i>
+                            訂貨總量統計 (給店家)
+                        </h4>
+                        <div id="stats-product-list" class="divide-y divide-stone-50">
+                            </div>
+                        <div class="pt-3 border-t border-stone-200 mt-3 flex justify-between items-center font-bold text-lg text-red-600">
+                            <span>📦 總訂購份數</span>
+                            <span id="stats-total-qty">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-4 border border-stone-100">
+                        <h4 class="text-lg font-bold text-stone-800 mb-3 flex items-center gap-2">
+                            <i data-lucide="users" class="w-5 h-5 text-red-600"></i>
+                            人員分帳表 (收錢用)
+                        </h4>
+                        <div id="stats-user-list" class="space-y-4">
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-stone-200 bg-white sticky bottom-0 flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-lg font-bold text-stone-600">總金額 (全團)</span>
+                <span id="cart-total" class="text-3xl font-extrabold text-red-600">NT$ 0</span>
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="clearCart()" class="flex-1 py-3 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i> 清空
+                </button>
+                <button onclick="submitOrder()" class="flex-1 py-3 bg-yellow-400 hover:bg-yellow-500 text-stone-900 font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md">
+                    <i data-lucide="send" class="w-4 h-4"></i> 確認送出
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-modal-container" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4 transition-opacity duration-300 opacity-100" style="display: none;">
+        <div id="custom-modal-content" class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md transform transition-all duration-300 scale-90 opacity-0">
+            <h3 id="modal-title" class="text-xl font-bold text-stone-900 mb-4 border-b pb-2">標題</h3>
+            <p id="modal-message" class="text-stone-700 whitespace-pre-wrap mb-6 text-sm"></p>
+            
+            <div id="modal-input-group" class="mb-6 hidden">
+                <label id="modal-input-label" for="modal-input" class="block text-sm font-medium text-stone-700 mb-2">輸入</label>
+                <input type="text" id="modal-input" class="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-stone-900" placeholder="請輸入內容">
+            </div>
+
+            <div id="modal-footer" class="flex justify-end space-x-3 mt-4">
+                 <button id="modal-cancel-btn" class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-800 font-medium rounded-lg transition-colors hidden">取消</button>
+                <button id="modal-confirm-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-stone-900 text-white p-3 rounded-xl shadow-lg z-50 transition-all duration-300 translate-y-20 opacity-0 min-w-[200px] sm:min-w-[300px]">
+        <p id="toast-message" class="font-bold text-sm">已加入購物車</p>
+        <p id="toast-sub" class="text-xs text-stone-400">幫 XXX 點了 YYY</p>
+    </div>
+
 <script>
     lucide.createIcons();
 
@@ -11,7 +267,7 @@
         { id: 105, name: "黃金海帶絲420g", price: 300, tag: "海洋清爽", category: "non-spicy", image: "uploaded:image_667cb7.png-2bd0b74f-b311-410e-928c-45edf8ff98a7", desc: "嚴選日本昆布，口感脆滑解膩。" },
         { id: 106, name: "黃金杏鮑菇420g", price: 300, tag: "Q彈多汁", category: "non-spicy", image: "uploaded:image_667c9d.png-f7c2588a-e7b8-4a20-9a4e-01a5b4dd696e", desc: "大塊杏鮑菇，吸飽黃金醬汁精華。" },
         { id: 107, name: "泰式酸辣鳳爪420g", price: 360, tag: "微辣開胃", category: "meat", image: "uploaded:image_667c97.png-e76cfc1c-8db0-43be-af46-df2019cba76d", desc: "酸、辣、甜完美平衡的泰式風味鳳爪。" },
-        { id: 108, name: "黃金鴨掌420g", price: 360, tag: "團購熱銷", category: "meat", image: "uploaded:image_667c62.png-d11b20f2-ff50-4aa7-b7ad-80aa7f3205cd", desc: "脆口鴨掌搭配黃金醬汁，口感層次豐富。" },
+        { id: 108, name: "黃金鴨掌420g", price: 360, tag: "團購熱銷", category: "meat", image: "uploaded:image_667c62.png-d11b20f2-ff50-4aa7-b7ad-80a7f3205cd", desc: "脆口鴨掌搭配黃金醬汁，口感層次豐富。" },
         
         // 420g 新增品項 (單罐，團購價 $360)
         { id: 109, name: "泡菜黃瓜420g", price: 360, tag: "季節限定", category: "non-spicy", image: "https://placehold.co/400x300/fcd34d/57534e?text=泡菜黃瓜", desc: "新鮮小黃瓜搭配清爽泡菜汁，清脆可口。" },
@@ -506,12 +762,15 @@
         document.getElementById('modal-input-group').classList.add('hidden');
         
         // 清空並替換 Modal Footer 的內容
+        // 註: 將報表文字 escape 處理以避免 JS 字串錯誤
+        const escapedReport = report.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+
         modalFooter.innerHTML = `
             <button onclick="hideCustomModal()" class="px-4 py-2 bg-stone-200 hover:bg-stone-300 text-stone-800 font-medium rounded-lg transition-colors">取消</button>
-            <button onclick="sendToLine('${report.replace(/'/g, "\\'")}')" class="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors">
+            <button onclick="sendToLine('${escapedReport}')" class="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors">
                  <i data-lucide="message-square-text" class="w-4 h-4"></i> 傳送至 Line
             </button>
-            <button onclick="copyToClipboard('${report.replace(/'/g, "\\'")}')" class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors">
+            <button onclick="copyToClipboard('${escapedReport}')" class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors">
                  <i data-lucide="copy" class="w-4 h-4"></i> 複製報表
             </button>
         `;
@@ -585,7 +844,6 @@
 
                 html += `
                     <div class="flex gap-3 p-3 bg-white rounded-xl border border-stone-100 shadow-sm">
-                        <img src="${item.image}" alt="${item.productName}" class="w-16 h-16 rounded-lg object-cover bg-stone-100">
                         <div class="flex-1 flex flex-col justify-between">
                             <div class="flex justify-between items-start">
                                 <div>
@@ -602,8 +860,7 @@
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             </div>
-                            <div class="flex justify-between items-end">
-                                <span class="text-sm font-bold text-red-600">NT$ ${itemTotal}</span>
+                            <div class="flex justify-between items-end mt-2"> <span class="text-sm font-bold text-red-600">NT$ ${itemTotal}</span>
                                 <div class="flex items-center bg-stone-100 rounded-lg border border-stone-200 h-7 shadow-sm">
                                     <button onclick="changeQty(${item.productId}, '${item.userName}', -1)" class="px-2 h-full hover:bg-stone-200 text-stone-600 rounded-l-lg text-sm">-</button>
                                     <span class="px-2 text-xs font-bold min-w-[1.5rem] text-center">${item.qty}</span>
@@ -776,7 +1033,7 @@
         renderProducts(filter);
     }
 
-    // 渲染產品
+    // 渲染產品 - **已移除圖片相關的 HTML**
     function renderProducts(filter = 'all') {
         const grid = document.getElementById('product-grid');
         grid.innerHTML = '';
@@ -801,7 +1058,8 @@
 
         filteredProducts.forEach(product => {
             const card = document.createElement('div');
-            card.className = 'product-card bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-stone-100 overflow-hidden flex flex-col group';
+            // 調整 class：移除 group 和 overflow-hidden，簡化為無圖卡片
+            card.className = 'product-card bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-stone-100 flex flex-col';
             
             // 產生 1-10 的選項
             const options = Array.from({length: 10}, (_, i) => i + 1)
@@ -815,14 +1073,11 @@
                 .trim();
 
             card.innerHTML = `
-                <div class="relative overflow-hidden aspect-[4/3] product-img-container bg-stone-100 flex items-center justify-center">
-                    <img src="${product.image}" 
-                         alt="${product.name}" 
-                         class="w-full h-full object-cover"
-                         onerror="this.onerror=null; this.parentElement.classList.remove('bg-stone-100'); this.parentElement.innerHTML='<div class=\\"p-8 text-center text-stone-400 text-sm\\"><i data-lucide=\\"image-off\\" class=\\"w-8 h-8 mx-auto mb-2\\"></i>圖片載入失敗</div>'; lucide.createIcons();">
-                    <div class="absolute top-3 left-3 bg-white/90 backdrop-blur text-xs font-bold px-3 py-1 rounded-full shadow-sm text-gray-800">${product.tag}</div>
-                </div>
                 <div class="p-6 flex flex-col flex-1">
+                    <div class="mb-3">
+                        <div class="bg-red-500/10 text-red-700 text-xs font-bold px-3 py-1 inline-block rounded-full shadow-sm">${product.tag}</div>
+                    </div>
+                    
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="text-xl font-bold text-gray-900">${cleanedName}</h3>
                         <span class="text-lg font-bold text-red-600">NT$ ${product.price}</span>
@@ -906,3 +1161,5 @@
         updateStatsUI(); 
     };
 </script>
+</body>
+</html>
