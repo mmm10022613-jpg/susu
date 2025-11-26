@@ -581,7 +581,7 @@
                 localStorage.setItem('isOrganizer', 'false');
                 showMessage("已切換回團員模式。");
             } else {
-                const key = prompt("請輸入團主密碼以啟用團購總表功能：");
+                const key = 1104("請輸入團主密碼以啟用團購總表功能：");
                 if (key === correctKey) {
                     isOrganizer = true;
                     localStorage.setItem('isOrganizer', 'true');
@@ -728,4 +728,5 @@
         };
     </script>
 </body>
+
 </html>
