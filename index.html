@@ -575,13 +575,13 @@
         }
 
         function checkOrganizerKey() {
-            const correctKey = "kaiseki2024";
+            const correctKey = "1104";
             if (isOrganizer) {
                 isOrganizer = false;
                 localStorage.setItem('isOrganizer', 'false');
                 showMessage("已切換回團員模式。");
             } else {
-                const key = 1104("請輸入團主密碼以啟用團購總表功能：");
+                const key = prompt("請輸入團主密碼以啟用團購總表功能：");
                 if (key === correctKey) {
                     isOrganizer = true;
                     localStorage.setItem('isOrganizer', 'true');
@@ -730,3 +730,4 @@
 </body>
 
 </html>
+
